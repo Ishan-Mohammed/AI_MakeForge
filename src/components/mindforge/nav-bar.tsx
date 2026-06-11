@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import { Brain, Moon, Sun } from 'lucide-react';
+import { Brain, Settings, Moon, Sun } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 export function NavBar() {
@@ -27,6 +27,9 @@ export function NavBar() {
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon" onClick={toggleDark}>
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          <Button variant="ghost" size="icon">
+            <Settings className="h-5 w-5" />
           </Button>
         </div>
       </div>

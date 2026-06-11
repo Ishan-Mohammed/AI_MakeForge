@@ -40,23 +40,14 @@ const GenerateExamPreparationQuestionsOutputSchema = z.object({
 });
 export type GenerateExamPreparationQuestionsOutput = z.infer<typeof GenerateExamPreparationQuestionsOutputSchema>;
 
-export type GenerateExamPreparationQuestionsResult = 
-  | { success: true; data: GenerateExamPreparationQuestionsOutput }
-  | { success: false; error: string; details?: string };
-
 export async function generateExamPreparationQuestions(
   input: GenerateExamPreparationQuestionsInput
-): Promise<GenerateExamPreparationQuestionsResult> {
+): Promise<GenerateExamPreparationQuestionsOutput> {
   try {
-    const data = await generateExamPreparationQuestionsFlow(input);
-    return { success: true, data };
+    return await generateExamPreparationQuestionsFlow(input);
   } catch (error) {
-    console.warn("Caught expected temporary outage in generateExamPreparationQuestions flow. Details:", error);
-    return { 
-      success: false, 
-      error: "UNAVAILABLE", 
-      details: error instanceof Error ? error.message : String(error) 
-    };
+    console.error("Error in generateExamPreparationQuestions flow:", error);
+    throw error;
   }
 }
 

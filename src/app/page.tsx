@@ -9,11 +9,9 @@ import { OutputDashboard } from '@/components/mindforge/output-dashboard';
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingState } from '@/components/mindforge/loading-state';
-import { motion } from 'motion/react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [result, setResult] = useState<GenerateStudyMaterialOutput | null>(null);
   const [showContent, setShowContent] = useState(false);
   const { toast } = useToast();
@@ -25,48 +23,23 @@ export default function Home() {
 
   const handleGenerate = async (content: string) => {
     setIsLoading(true);
-    setLoadingMessage(null);
     setResult(null);
-
-    const maxRetries = 3;
-    const delays = [2000, 4000, 8000]; // 2s, 4s, 8s exponential backoff
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        if (attempt > 0) {
-          setLoadingMessage("Gemini is experiencing high demand. Retrying...");
-          // Wait for exponential backoff duration
-          await new Promise((resolve) => setTimeout(resolve, delays[attempt - 1]));
-        }
-
-        const response = await generateComprehensiveStudyMaterial({ lessonContent: content });
-        if (!response.success) {
-          throw new Error(response.details || response.error);
-        }
-        setResult(response.data);
-        toast({
-          title: "Mastery Forged",
-          description: "Your study materials are ready.",
-        });
-        setIsLoading(false);
-        setLoadingMessage(null);
-        return; // Success! Exit flow
-      } catch (error) {
-        // Log technical details but do not expose raw API errors to users
-        console.error(`Attempt ${attempt} of study material generation failed with error:`, error);
-
-        if (attempt === maxRetries) {
-          // All retries failed, show a friendly notification to the user
-          toast({
-            variant: "destructive",
-            title: "Forge Failed",
-            description: "AI service is currently busy. Please try again in a few moments.",
-          });
-          setIsLoading(false);
-          setLoadingMessage(null);
-          return;
-        }
-      }
+    try {
+      const response = await generateComprehensiveStudyMaterial({ lessonContent: content });
+      setResult(response);
+      toast({
+        title: "Mastery Forged",
+        description: "Your study materials are ready.",
+      });
+    } catch (error) {
+      console.error("Processing failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Forge Failed",
+        description: "Could not process content. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -76,31 +49,16 @@ export default function Home() {
       
       <div className="container max-w-6xl mx-auto flex-1 flex flex-col px-6 py-12 md:py-16">
         {/* Centered Hero Section */}
-        <div className="mb-16 text-center space-y-6 overflow-hidden select-none">
-          <motion.h1 
-            initial={{ opacity: 0, x: -70 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-            className="text-6xl md:text-8xl font-headline font-bold text-primary tracking-tight"
-          >
+        <div className="mb-16 text-center space-y-6">
+          <h1 className="text-6xl md:text-8xl font-headline font-bold text-primary animate-slide-in tracking-tight">
             MindForge AI
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-3xl mx-auto text-xl md:text-2xl text-muted-foreground font-light leading-relaxed px-4"
-          >
+          </h1>
+          <p className="max-w-3xl mx-auto text-xl md:text-2xl text-muted-foreground font-light opacity-0 animate-slide-in [animation-delay:400ms] leading-relaxed">
             Transform your notes, lessons, and study materials into AI-powered flashcards, key concepts, and revision cards in seconds.
-          </motion.p>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.8, ease: "easeOut" }}
-            className="pt-2"
-          >
+          </p>
+          <div className="pt-2 opacity-0 animate-slide-in [animation-delay:600ms]">
             <span className="text-sm font-code text-secondary uppercase tracking-[0.2em] font-bold">Learn Less. Remember More.</span>
-          </motion.div>
+          </div>
         </div>
 
         {showContent && (
@@ -112,7 +70,7 @@ export default function Home() {
 
             {/* Loading or Output */}
             {isLoading ? (
-              <LoadingState messageOverride={loadingMessage} />
+              <LoadingState />
             ) : result ? (
               <section id="results" className="pb-24">
                 <OutputDashboard data={result} />

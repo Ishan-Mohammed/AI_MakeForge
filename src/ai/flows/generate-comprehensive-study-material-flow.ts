@@ -39,23 +39,14 @@ const GenerateStudyMaterialOutputSchema = z.object({
 
 export type GenerateStudyMaterialOutput = z.infer<typeof GenerateStudyMaterialOutputSchema>;
 
-export type GenerateStudyMaterialResult = 
-  | { success: true; data: GenerateStudyMaterialOutput }
-  | { success: false; error: string; details?: string };
-
 export async function generateComprehensiveStudyMaterial(
   input: GenerateStudyMaterialInput
-): Promise<GenerateStudyMaterialResult> {
+): Promise<GenerateStudyMaterialOutput> {
   try {
-    const data = await generateStudyMaterialFlow(input);
-    return { success: true, data };
+    return await generateStudyMaterialFlow(input);
   } catch (error) {
-    console.warn("Caught expected temporary outage in generateComprehensiveStudyMaterial flow. Details:", error);
-    return { 
-      success: false, 
-      error: "UNAVAILABLE", 
-      details: error instanceof Error ? error.message : String(error) 
-    };
+    console.error("Error in generateComprehensiveStudyMaterial flow:", error);
+    throw error;
   }
 }
 
